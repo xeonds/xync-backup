@@ -29,7 +29,7 @@ class SyncEntity {
   String folderName;
   String source;
   String destination;
-  String method;
+  SyncMethod method;
   bool isEnabled;
 
   SyncEntity({
@@ -57,4 +57,14 @@ class SyncLog {
     required this.type,
     required this.details,
   });
+}
+
+enum SyncMethod {
+  twoWaySync,
+  uploadOnly,
+  downloadOnly,
+  deleteAfterUpload,
+  deleteAfterDownload,
+  uploadMirror,
+  downloadMirror,
 }

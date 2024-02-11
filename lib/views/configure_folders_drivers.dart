@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:xync_backup/views/add_cloud_driver.dart';
 
 import '../models/models.dart';
+import 'add_sync_folder.dart';
 
 class ConfiguredFoldersPage extends StatelessWidget {
   const ConfiguredFoldersPage({super.key});
@@ -46,21 +48,21 @@ class _ConfiguredFoldersTabState extends State<ConfiguredFoldersTab> {
       folderName: 'Documents',
       source: '/documents',
       destination: 'WebDAV Driver A',
-      method: 'Upload Only',
+      method: SyncMethod.uploadOnly,
       isEnabled: true,
     ),
     SyncEntity(
       folderName: 'Photos',
       source: '/photos',
       destination: 'SMB Driver B',
-      method: 'Two-way Sync',
+      method: SyncMethod.downloadOnly,
       isEnabled: false,
     ),
     SyncEntity(
       folderName: 'Videos',
       source: '/videos',
       destination: 'FTP Driver C',
-      method: 'Download Only',
+      method: SyncMethod.twoWaySync,
       isEnabled: true,
     ),
   ];
@@ -103,7 +105,11 @@ class _ConfiguredFoldersTabState extends State<ConfiguredFoldersTab> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
-            onPressed: () {},
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const AddSyncFolderPage()),
+            ),
             child: const Icon(Icons.add),
           ),
           const SizedBox(height: 72)
@@ -200,7 +206,10 @@ class _CloudDriversTabState extends State<CloudDriversTab> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
-            onPressed: () {},
+            onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const AddCloudDriverPage())),
             child: const Icon(Icons.add),
           ),
           const SizedBox(height: 72)
