@@ -19,3 +19,4 @@ flutter build apk
 ## Changelog
 
 - v0.1.0: inital commit, completed UI design
+- v0.1.1: fix UI sync with worker process

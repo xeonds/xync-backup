@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final syncService = Provider.of<SyncService>(context, listen: false);
+    final syncService = Provider.of<SyncService>(context, listen: true);
     return Scaffold(
       body: _pages[_selectedIndex],
       bottomNavigationBar: NavigationBar(
@@ -89,12 +89,15 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 FloatingActionButton(
-                  onPressed: () => syncService.pauseSync(),
-                  child: const Icon(Icons.pause),
+                  onPressed: () => syncService.isPaused
+                      ? syncService.resumeSync()
+                      : syncService.pauseSync(),
+                  child: Icon(
+                      syncService.isPaused ? Icons.play_arrow : Icons.pause),
                 ),
                 const SizedBox(width: 16.0),
                 FloatingActionButton(
-                  onPressed: () => syncService.pauseSync(),
+                  onPressed: () => syncService.stopSync(),
                   child: const Icon(Icons.stop),
                 ),
               ],

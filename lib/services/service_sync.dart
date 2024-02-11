@@ -6,10 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../models/models.dart';
 
 void startSyncService() {
-  // Read sync rules from JSON file
   List<SyncRule> syncRules = readSyncRules();
-
-  // Perform sync job for each rule
   for (var rule in syncRules) {
     syncFiles(rule);
   }
@@ -22,8 +19,6 @@ List<SyncRule> readSyncRules() {
 }
 
 void syncFiles(SyncRule rule) {
-  // Perform sync job based on the rule
-  // Example: Upload files to a remote server using WebDAV or SMB
   if (kDebugMode) {
     print(
         'Syncing ${rule.source} to ${rule.destination} using ${rule.method} method...');
@@ -60,20 +55,22 @@ class SyncService extends ChangeNotifier {
   void startSync() {
     _isSyncing = true;
     notifyListeners();
-    // Start the sync process
-  }
-
-  void pauseSync() {
-    _isPaused = true;
-    notifyListeners();
-    // Pause the sync process
   }
 
   void stopSync() {
     _isSyncing = false;
     _isPaused = false;
     notifyListeners();
-    // Stop the sync process
+  }
+
+  void pauseSync() {
+    _isPaused = true;
+    notifyListeners();
+  }
+
+  void resumeSync() {
+    _isPaused = false;
+    notifyListeners();
   }
 }
 
