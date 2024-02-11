@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../services/service_sync.dart';
 
 class OverviewPage extends StatefulWidget {
   const OverviewPage({super.key});
@@ -17,7 +20,7 @@ class _OverviewPageState extends State<OverviewPage> {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: const [
-          SyncStatusCard(isSyncing: false),
+          SyncStatusCard(),
           SizedBox(height: 16.0),
           FilesDiffCard(),
           SizedBox(height: 16.0),
@@ -29,12 +32,11 @@ class _OverviewPageState extends State<OverviewPage> {
 }
 
 class SyncStatusCard extends StatelessWidget {
-  final bool isSyncing;
-
-  const SyncStatusCard({super.key, required this.isSyncing});
+  const SyncStatusCard({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final syncService = Provider.of<SyncService>(context, listen: true);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -49,7 +51,8 @@ class SyncStatusCard extends StatelessWidget {
             const Text('Last Sync Time: [Replace with actual time]'),
             const Text('Ended At: [Replace with actual time]'),
             const Text('Time Spent: [Replace with actual time]'),
-            Text('Syncing: ${isSyncing ? 'Yes' : 'No'}'),
+            Text(
+                'Syncing: ${syncService.isSyncing ? syncService.isPaused ? 'Paused' : 'Yes' : 'No'}'),
           ],
         ),
       ),
