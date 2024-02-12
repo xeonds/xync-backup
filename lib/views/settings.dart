@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:xync_backup/services/shared_preferences_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -9,23 +10,14 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool _followSystemDark = false;
   final TextEditingController _controllerServerUrl = TextEditingController();
   final TextEditingController _controllerAPIKey = TextEditingController();
+  late SharedPreferencesService sharedPrefService;
 
   @override
-  void initState() {
+  void initState() async {
     super.initState();
-    _loadSettings();
-  }
-
-  Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _followSystemDark = prefs.getBool("followSystemDark") ?? false;
-      _controllerServerUrl.text = prefs.getString("serverUrl") ?? '';
-      _controllerAPIKey.text = prefs.getString("apiKey") ?? '';
-    });
+    sharedPrefService = await SharedPreferencesService.getInstance();
   }
 
   @override
@@ -44,11 +36,9 @@ class _SettingsPageState extends State<SettingsPage> {
           const Text('Yet another file backup utility.'),
           // 功能1
           const SizedBox(height: 20),
-          Card(
-              child: Column(
+          _buildSection(
+            title: "Sync Settings",
             children: [
-              const SizedBox(height: 10),
-              _buildListSubtitle("Sync Settings"),
               ListTile(
                 title: const Text('Upload size limit when using Wi-Fi'),
                 subtitle: const Text('No limit'),
@@ -84,13 +74,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ],
-          )),
+          ),
           const SizedBox(height: 20),
-          Card(
-              child: Column(
+          _buildSection(
+            title: "Language & Appearance",
             children: [
-              const SizedBox(height: 10),
-              _buildListSubtitle("Language & Appearance"),
               ListTile(
                 title: const Text('Display language'),
                 subtitle: const Text('Follow system'),
@@ -103,63 +91,52 @@ class _SettingsPageState extends State<SettingsPage> {
               ListTile(
                 title: const Text('Follow system brightness'),
                 onTap: () async {
-                  final prefs = await SharedPreferences.getInstance();
-                  final value = prefs.getBool('followSystemDark') ?? false;
-                  setState(() {
-                    _followSystemDark = !value;
-                    prefs.setBool('followSystemDark', !value);
-                  });
+                  setState(() => sharedPrefService.followSystemTheme =
+                      !sharedPrefService.followSystemTheme);
                 },
                 trailing: Switch(
-                  value: _followSystemDark,
+                  value: sharedPrefService.followSystemTheme,
                   onChanged: (value) async {
-                    final prefs = await SharedPreferences.getInstance();
-                    setState(() {
-                      _followSystemDark = value;
-                      prefs.setBool('followSystemDark', value);
-                    });
+                    setState(() => sharedPrefService.followSystemTheme = value);
                   },
                 ),
               ),
             ],
-          )),
+          ),
           const SizedBox(height: 20),
-          Card(
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
-                _buildListSubtitle("MISC"),
-                ListTile(
-                  title: const Text('Notification'),
-                  onTap: () {},
-                  trailing: IconButton(
-                    icon: const Icon(Icons.arrow_forward),
-                    onPressed: () {},
-                  ),
+          _buildSection(
+            title: "MISC",
+            children: [
+              ListTile(
+                title: const Text('Notification'),
+                onTap: () {},
+                trailing: IconButton(
+                  icon: const Icon(Icons.arrow_forward),
+                  onPressed: () {},
                 ),
-                ListTile(
-                  title: const Text('Safety'),
-                  onTap: () {},
-                  trailing: IconButton(
-                    icon: const Icon(Icons.arrow_forward),
-                    onPressed: () {},
-                  ),
+              ),
+              ListTile(
+                title: const Text('Safety'),
+                onTap: () {},
+                trailing: IconButton(
+                  icon: const Icon(Icons.arrow_forward),
+                  onPressed: () {},
                 ),
-                ListTile(
-                  title: const Text('Turn off battery optimization'),
-                  subtitle: const Text(
-                      'Allow app to run in background to auto synchronize'),
-                  onTap: () =>
-                      showMessageDialog(context, "Battery optimization", ":)"),
-                ),
-                ListTile(
-                  title: const Text('About'),
-                  subtitle: const Text('Version 1.0.0'),
-                  onTap: () => showMessageDialog(
-                      context, "About", "Fish touching <` >-<="),
-                ),
-              ],
-            ),
+              ),
+              ListTile(
+                title: const Text('Turn off battery optimization'),
+                subtitle: const Text(
+                    'Allow app to run in background to auto synchronize'),
+                onTap: () =>
+                    showMessageDialog(context, "Battery optimization", ":)"),
+              ),
+              ListTile(
+                title: const Text('About'),
+                subtitle: const Text('Version 1.0.0'),
+                onTap: () => showMessageDialog(
+                    context, "About", "Fish touching <` >-<="),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           const Column(
@@ -174,35 +151,44 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildListSubtitle(String text) {
-    return Row(children: [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(12, 0, 0, 0),
-        child: Text(
-          text,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-      )
-    ]);
-  }
-}
-
-void showMessageDialog(BuildContext context, String title, String content) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('OK'),
+  Widget _buildListSubtitle(String text) => Row(children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 0, 0),
+          child: Text(
+            text,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-        ],
+        )
+      ]);
+
+  Widget _buildSection(
+          {String title = '', required List<Widget> children}) =>
+      Card(
+          child: Column(
+              children: title != ''
+                  ? [
+                      const SizedBox(height: 10),
+                      _buildListSubtitle(title),
+                      ...children
+                    ]
+                  : [const SizedBox(height: 10), ...children]));
+
+  void showMessageDialog(BuildContext context, String title, String content) =>
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(title),
+            content: Text(content),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
       );
-    },
-  );
 }

@@ -20,8 +20,8 @@ class ConfiguredFoldersPage extends StatelessWidget {
               Tab(text: 'Cloud Drivers'),
             ],
             isScrollable: true,
-            indicatorColor: Theme.of(context).colorScheme.inversePrimary,
-            labelColor: Theme.of(context).colorScheme.inversePrimary,
+            indicatorColor: Theme.of(context).colorScheme.primary,
+            labelColor: Theme.of(context).colorScheme.primary,
           ),
         ),
         body: const TabBarView(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../services/service_sync.dart';
+import '../services/sync_service.dart';
 
 class OverviewPage extends StatefulWidget {
   const OverviewPage({super.key});

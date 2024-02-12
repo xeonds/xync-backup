@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:xync_backup/models/models.dart';
 
 class AddSyncFolderPage extends StatefulWidget {
   const AddSyncFolderPage({super.key});
