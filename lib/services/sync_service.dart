@@ -5,26 +5,6 @@ import 'package:flutter/foundation.dart';
 
 import '../models/models.dart';
 
-void startSyncService() {
-  List<SyncRule> syncRules = readSyncRules();
-  for (var rule in syncRules) {
-    syncFiles(rule);
-  }
-}
-
-List<SyncRule> readSyncRules() {
-  String jsonContent = File('sync_rules.json').readAsStringSync();
-  List<dynamic> jsonList = json.decode(jsonContent);
-  return jsonList.map((json) => SyncRule.fromJson(json)).toList();
-}
-
-void syncFiles(SyncRule rule) {
-  if (kDebugMode) {
-    print(
-        'Syncing ${rule.source} to ${rule.destination} using ${rule.method} method...');
-  }
-}
-
 class SyncRule {
   final String source;
   final String destination;
@@ -52,8 +32,27 @@ class SyncService extends ChangeNotifier {
   bool get isSyncing => _isSyncing;
   bool get isPaused => _isPaused;
 
+  Future<void> init() async {}
+
+  List<SyncRule> readSyncRules() {
+    String jsonContent = File('sync_rules.json').readAsStringSync();
+    List<dynamic> jsonList = json.decode(jsonContent);
+    return jsonList.map((json) => SyncRule.fromJson(json)).toList();
+  }
+
+  void syncFiles(SyncRule rule) {
+    if (kDebugMode) {
+      print(
+          'Syncing ${rule.source} to ${rule.destination} using ${rule.method} method...');
+    }
+  }
+
   void startSync() {
     _isSyncing = true;
+    List<SyncRule> syncRules = readSyncRules();
+    for (var rule in syncRules) {
+      syncFiles(rule);
+    }
     notifyListeners();
   }
 

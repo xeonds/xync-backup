@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import 'package:xync_backup/services/shared_preferences_service.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -10,21 +10,12 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  final TextEditingController _controllerServerUrl = TextEditingController();
-  final TextEditingController _controllerAPIKey = TextEditingController();
-  late SharedPreferencesService sharedPrefService;
-
-  @override
-  void initState() async {
-    super.initState();
-    sharedPrefService = await SharedPreferencesService.getInstance();
-  }
-
   @override
   Widget build(BuildContext context) {
+    final prefs = Provider.of<SharedPreferencesService>(context, listen: true);
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Xync Backup"),
+        title: const Text("Settings"),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
@@ -41,33 +32,58 @@ class _SettingsPageState extends State<SettingsPage> {
             children: [
               ListTile(
                 title: const Text('Upload size limit when using Wi-Fi'),
-                subtitle: const Text('No limit'),
-                onTap: () {},
+                subtitle: Text(prefs.uploadSizeLimit.toString()),
+                onTap: () => showTextInputDialog(
+                    context,
+                    "Upload size limit",
+                    "Enter new value",
+                    (value) => setState(
+                        () => prefs.uploadSizeLimit = int.parse(value))),
               ),
               ListTile(
                 title: const Text('Download size limit when using Wi-Fi'),
-                subtitle: const Text('No limit'),
-                onTap: () {},
+                subtitle: Text(prefs.downloadSizeLimit.toString()),
+                onTap: () => showTextInputDialog(
+                    context,
+                    "Download size limit",
+                    "Enter new value",
+                    (value) => setState(
+                        () => prefs.downloadSizeLimit = int.parse(value))),
               ),
               ListTile(
                 title: const Text('Upload size limit when using data'),
-                subtitle: const Text('No limit'),
-                onTap: () {},
+                subtitle: Text(prefs.uploadSizeLimitWhenUsingData.toString()),
+                onTap: () => showTextInputDialog(
+                    context,
+                    "Upload size limit",
+                    "Enter new value",
+                    (value) => setState(() =>
+                        prefs.uploadSizeLimitWhenUsingData = int.parse(value))),
               ),
               ListTile(
                 title: const Text('Download size limit when using data'),
-                subtitle: const Text('No limit'),
-                onTap: () {},
+                subtitle: Text(prefs.downloadSizeLimitWhenUsingData.toString()),
+                onTap: () => showTextInputDialog(
+                    context,
+                    "Download size limit",
+                    "Enter new value",
+                    (value) => setState(() => prefs
+                        .downloadSizeLimitWhenUsingData = int.parse(value))),
               ),
               ListTile(
                 title: const Text('Notify when sync using data'),
                 subtitle: const Text('Check before manual sync'),
-                trailing: Checkbox(value: false, onChanged: (bool? value) {}),
-                onTap: () {},
+                trailing: Checkbox(
+                    value: prefs.notifyWhenSyncUsingData,
+                    onChanged: (bool? value) =>
+                        prefs.notifyWhenSyncUsingData = value!),
+                onTap: () => prefs.notifyWhenSyncUsingData =
+                    !prefs.notifyWhenSyncUsingData,
               ),
               ListTile(
                 title: const Text('Other settings'),
-                onTap: () {},
+                onTap: () => showMessageDialog(
+                    context, 'Other settings', 'Under construction'),
                 trailing: IconButton(
                   icon: const Icon(Icons.arrow_forward),
                   onPressed: () {},
@@ -81,24 +97,32 @@ class _SettingsPageState extends State<SettingsPage> {
             children: [
               ListTile(
                 title: const Text('Display language'),
-                subtitle: const Text('Follow system'),
-                onTap: () {},
+                subtitle: Text(prefs.displayLanguage),
+                onTap: () => showRadioDialog(
+                    context,
+                    "Display language",
+                    ["English", "简体中文", "繁體中文"],
+                    prefs.displayLanguage,
+                    (value) => setState(() => prefs.displayLanguage = value)),
               ),
               ListTile(
                 title: const Text('Color scheme'),
-                onTap: () {},
+                subtitle: Text('${prefs.colorScheme} - Reload to take effect'),
+                onTap: () => showRadioDialog(
+                    context,
+                    'Color Scheme',
+                    AppTheme.values.map((e) => e.toString()).toList(),
+                    prefs.colorScheme,
+                    (p0) => setState(() => prefs.colorScheme = p0)),
               ),
               ListTile(
-                title: const Text('Follow system brightness'),
-                onTap: () async {
-                  setState(() => sharedPrefService.followSystemTheme =
-                      !sharedPrefService.followSystemTheme);
-                },
+                title: const Text('Follow system theme'),
+                onTap: () => setState(
+                    () => prefs.followSystemTheme = !prefs.followSystemTheme),
                 trailing: Switch(
-                  value: sharedPrefService.followSystemTheme,
-                  onChanged: (value) async {
-                    setState(() => sharedPrefService.followSystemTheme = value);
-                  },
+                  value: prefs.followSystemTheme,
+                  onChanged: (value) =>
+                      setState(() => prefs.followSystemTheme = value),
                 ),
               ),
             ],
@@ -107,22 +131,22 @@ class _SettingsPageState extends State<SettingsPage> {
           _buildSection(
             title: "MISC",
             children: [
-              ListTile(
-                title: const Text('Notification'),
-                onTap: () {},
-                trailing: IconButton(
-                  icon: const Icon(Icons.arrow_forward),
-                  onPressed: () {},
-                ),
-              ),
-              ListTile(
-                title: const Text('Safety'),
-                onTap: () {},
-                trailing: IconButton(
-                  icon: const Icon(Icons.arrow_forward),
-                  onPressed: () {},
-                ),
-              ),
+              // ListTile(
+              //   title: const Text('Notification'),
+              //   onTap: () {},
+              //   trailing: IconButton(
+              //     icon: const Icon(Icons.arrow_forward),
+              //     onPressed: () {},
+              //   ),
+              // ),
+              // ListTile(
+              //   title: const Text('Safety'),
+              //   onTap: () {},
+              //   trailing: IconButton(
+              //     icon: const Icon(Icons.arrow_forward),
+              //     onPressed: () {},
+              //   ),
+              // ),
               ListTile(
                 title: const Text('Turn off battery optimization'),
                 subtitle: const Text(
@@ -145,7 +169,8 @@ class _SettingsPageState extends State<SettingsPage> {
               Text('Copyright 2024 xeonds'),
               Text('All rights reserved')
             ],
-          )
+          ),
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -186,6 +211,67 @@ class _SettingsPageState extends State<SettingsPage> {
                   Navigator.of(context).pop();
                 },
                 child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+  void showTextInputDialog(BuildContext context, String title, String content,
+          Function(String) ok) =>
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          final TextEditingController controller = TextEditingController();
+          return AlertDialog(
+            title: Text(title),
+            content: TextField(
+              controller: controller,
+              decoration: InputDecoration(hintText: content),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  ok(controller.text);
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+
+  void showRadioDialog(BuildContext context, String title, List<String> options,
+          String selected, Function(String) ok) =>
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(title),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: options
+                  .map((e) => RadioListTile(
+                        title: Text(e),
+                        value: e,
+                        groupValue: selected,
+                        onChanged: (String? value) {
+                          ok(value!);
+                          Navigator.of(context).pop();
+                        },
+                      ))
+                  .toList(),
+            ),
+            actions: [
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           );

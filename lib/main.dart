@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'services/shared_preferences_service.dart';
 import 'services/sync_service.dart';
 import 'views/configure_folders_drivers.dart';
 import 'views/overview.dart';
 import 'views/settings.dart';
 import 'views/sync_logs.dart';
 
-void main() {
-  // startSyncService();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SharedPreferencesService().init();
+  await SyncService().init();
   runApp(const MyApp());
 }
 
@@ -17,15 +20,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => SyncService(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => SyncService()),
+        ChangeNotifierProvider(create: (context) => SharedPreferencesService()),
+      ],
       child: MaterialApp(
         title: 'Xync Backup',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-            useMaterial3: true),
-        darkTheme: ThemeData(brightness: Brightness.dark),
+        theme:
+            SharedPreferencesService().colorScheme == AppTheme.dark.toString()
+                ? ThemeData.dark()
+                : ThemeData(
+                    colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+                    useMaterial3: true),
+        // darkTheme: ThemeData.dark(),
         home: const HomePage(),
       ),
     );
