@@ -49,11 +49,11 @@ class SyncService extends ChangeNotifier {
 
   void startSync() {
     _isSyncing = true;
+    notifyListeners();
     List<SyncRule> syncRules = readSyncRules();
     for (var rule in syncRules) {
       syncFiles(rule);
     }
-    notifyListeners();
   }
 
   void stopSync() {
@@ -157,3 +157,9 @@ class CloudDriverController {
     await File('cloud_drivers.json').writeAsString(jsonString);
   }
 }
+
+// TODO: write controller that provides CRUD functions for folders and cloud drivers
+// TODO: implement cloud drivers in different protocols and provide same apis for sync
+// TODO: implement workers function, which do sync works with generic api of driver options
+// TODO: handle exceptions for file sync
+// TODO: write log using logger service
