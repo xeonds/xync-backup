@@ -76,6 +76,9 @@ class CRUD<T> {
   Future<CRUD> init() async {
     final directory = await getApplicationDocumentsDirectory();
     _file = File('${directory.path}/$_fileName');
+    if (!_file.existsSync()) {
+      await _file.create();
+    }
 
     return this;
   }
