@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
+import 'package:webdav_client/webdav_client.dart';
 
 import '../models/models.dart';
 
@@ -39,20 +38,41 @@ class SyncService extends ChangeNotifier {
       print(
           'Syncing ${rule.localPath} to ${rule.cloudPath} using ${rule.method} method...');
     }
-    if (rule.localPath.isEmpty || rule.cloudPath.isEmpty) {
-      if (kDebugMode) {
-        print('Please select a folder and cloud destination.');
-      }
-      return;
-    }
-
     final files = Directory(rule.localPath).listSync();
+    final client = getStorageService(
+        cloudDrivers.firstWhere((driver) => driver.id == rule.driver.id,
+            orElse: () => CloudDriver(
+                  type: rule.driver.type,
+                  address: rule.driver.address,
+                  userId: rule.driver.userId,
+                  token: rule.driver.token,
+                )));
 
     for (var file in files) {
       if (file is File) {
         try {
-          uploadFileToWebDav(
-              rule.cloudPath, rule.cloudPath, rule.cloudPath, file);
+          switch (rule.method) {
+            case SyncMethod.twoWaySync:
+              await client.uploadFile(file as File, rule);
+              break;
+            case SyncMethod.uploadOnly:
+              await client.uploadFile(file as File, rule);
+              break;
+            case SyncMethod.downloadOnly:
+              break;
+            case SyncMethod.uploadMirror:
+              break;
+            case SyncMethod.downloadMirror:
+              break;
+            case SyncMethod.deleteAfterUpload:
+              break;
+            case SyncMethod.deleteAfterDownload:
+              break;
+            default:
+              if (kDebugMode) {
+                print('Invalid sync method');
+              }
+          }
         } catch (e) {
           if (kDebugMode) {
             print(e);
@@ -87,22 +107,52 @@ class SyncService extends ChangeNotifier {
   }
 }
 
-Future<void> uploadFileToWebDav(
-    String url, String username, String password, File file) async {
-  var bytes = await file.readAsBytes();
-  var uri = Uri.parse(url);
+abstract class StorageService {
+  Future<void> uploadFile(File file, SyncFolder rule);
+}
 
-  var basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+StorageService getStorageService(CloudDriver driver) {
+  switch (driver.type) {
+    case 'WebDAV':
+      return WebDAVService(driver);
+    case 'SMB':
+    // return SMBService(driver);
+    case 'FTP':
+    // return FTPService(driver);
+    default:
+      throw UnimplementedError('Unsupported cloud driver type');
+  }
+}
 
-  var request = http.Request('PUT', uri)
-    ..headers['authorization'] = basicAuth
-    ..bodyBytes = bytes;
+class WebDAVService implements StorageService {
+  final CloudDriver driver;
+  late final Client webdav;
 
-  var response = await request.send();
+  WebDAVService(this.driver) {
+    webdav =
+        newClient(driver.address, user: driver.userId, password: driver.token);
+  }
 
-  if (response.statusCode == 201) {
-    if (kDebugMode) {
-      print('Failed to upload file: ${response.statusCode}');
+  @override
+  Future<void> uploadFile(File file, SyncFolder rule) async {
+    try {
+      await webdav.writeFromFile(
+        '${rule.localPath}/${file.path!}',
+        '${rule.cloudPath}/${file.path!}',
+        onProgress: (count, total) {
+          // TODO: Add progress bar
+          if (kDebugMode) {
+            print('Upload progress: ${(count / total) * 100}%');
+          }
+        },
+      );
+      if (kDebugMode) {
+        print('File uploaded successfully.');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error uploading file: $e');
+      }
     }
   }
 }
