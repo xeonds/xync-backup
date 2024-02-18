@@ -8,8 +8,9 @@ class SyncFolder {
   final String id;
   final String name;
   final String localPath;
-  final SyncMethod method;
   final String cloudPath;
+  final SyncMethod method;
+  final CloudDriver driver;
   bool isEnabled;
 
   SyncFolder(
@@ -18,6 +19,7 @@ class SyncFolder {
       required this.localPath,
       required this.cloudPath,
       required this.method,
+      required this.driver,
       required this.isEnabled});
 }
 

@@ -49,12 +49,17 @@ class CloudDriversTab extends StatefulWidget {
 }
 
 class _ConfiguredFoldersTabState extends State<ConfiguredFoldersTab> {
-  List<SyncFolder> _syncEntities = [
+  final List<SyncFolder> _syncEntities = [
     SyncFolder(
       id: '1',
       name: 'Documents',
       localPath: '/documents',
       cloudPath: 'WebDAV Driver A',
+      driver: CloudDriver(
+          type: 'WebDAV',
+          userId: 'user1',
+          address: 'http://webdav.example.com',
+          token: "null"),
       method: SyncMethod.uploadOnly,
       isEnabled: true,
     ),
@@ -63,6 +68,11 @@ class _ConfiguredFoldersTabState extends State<ConfiguredFoldersTab> {
       name: 'Photos',
       localPath: '/photos',
       cloudPath: 'SMB Driver B',
+      driver: CloudDriver(
+          type: 'SMB',
+          userId: 'user2',
+          address: 'smb://smb.example.com',
+          token: "null"),
       method: SyncMethod.downloadOnly,
       isEnabled: false,
     ),
@@ -71,6 +81,11 @@ class _ConfiguredFoldersTabState extends State<ConfiguredFoldersTab> {
       name: 'Videos',
       localPath: '/videos',
       cloudPath: 'FTP Driver C',
+      driver: CloudDriver(
+          type: 'FTP',
+          userId: 'user3',
+          address: 'ftp://ftp.example.com',
+          token: "null"),
       method: SyncMethod.twoWaySync,
       isEnabled: true,
     ),

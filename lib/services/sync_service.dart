@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 import '../models/models.dart';
 
@@ -30,10 +34,31 @@ class SyncService extends ChangeNotifier {
     return data.cast<CloudDriver>();
   }
 
-  void syncFiles(SyncFolder rule) {
+  Future<void> syncFiles(SyncFolder rule) async {
     if (kDebugMode) {
       print(
           'Syncing ${rule.localPath} to ${rule.cloudPath} using ${rule.method} method...');
+    }
+    if (rule.localPath.isEmpty || rule.cloudPath.isEmpty) {
+      if (kDebugMode) {
+        print('Please select a folder and cloud destination.');
+      }
+      return;
+    }
+
+    final files = Directory(rule.localPath).listSync();
+
+    for (var file in files) {
+      if (file is File) {
+        try {
+          uploadFileToWebDav(
+              rule.cloudPath, rule.cloudPath, rule.cloudPath, file);
+        } catch (e) {
+          if (kDebugMode) {
+            print(e);
+          }
+        }
+      }
     }
   }
 
@@ -59,5 +84,25 @@ class SyncService extends ChangeNotifier {
   void resumeSync() {
     _isPaused = false;
     notifyListeners();
+  }
+}
+
+Future<void> uploadFileToWebDav(
+    String url, String username, String password, File file) async {
+  var bytes = await file.readAsBytes();
+  var uri = Uri.parse(url);
+
+  var basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+
+  var request = http.Request('PUT', uri)
+    ..headers['authorization'] = basicAuth
+    ..bodyBytes = bytes;
+
+  var response = await request.send();
+
+  if (response.statusCode == 201) {
+    if (kDebugMode) {
+      print('Failed to upload file: ${response.statusCode}');
+    }
   }
 }
