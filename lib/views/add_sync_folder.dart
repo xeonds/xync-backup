@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 class AddSyncFolderPage extends StatefulWidget {
@@ -86,6 +89,16 @@ class _AddSyncFolderPageState extends State<AddSyncFolderPage> {
                     return 'Please enter a folder path';
                   }
                   return null;
+                },
+                onTap: () async {
+                  // Open file picker
+                  final Directory directory = Directory(
+                      await FilePicker.platform.getDirectoryPath() ?? '');
+                  if (directory.path != '') {
+                    setState(() {
+                      _localFolderController.text = directory.path;
+                    });
+                  }
                 },
               ),
               DropdownButtonFormField<String>(

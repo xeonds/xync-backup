@@ -8,13 +8,17 @@ class SyncFolder {
   final String id;
   final String name;
   final String localPath;
+  final SyncMethod method;
   final String cloudPath;
+  bool isEnabled;
 
   SyncFolder(
       {required this.id,
       required this.name,
       required this.localPath,
-      required this.cloudPath});
+      required this.cloudPath,
+      required this.method,
+      required this.isEnabled});
 }
 
 class CloudDriver {
@@ -29,22 +33,6 @@ class CloudDriver {
       required this.address,
       required this.userId,
       required this.token});
-}
-
-class SyncEntity {
-  String folderName;
-  String source;
-  String destination;
-  SyncMethod method;
-  bool isEnabled;
-
-  SyncEntity({
-    required this.folderName,
-    required this.source,
-    required this.destination,
-    required this.method,
-    required this.isEnabled,
-  });
 }
 
 enum SyncLogType { success, info, error }
@@ -75,23 +63,25 @@ enum SyncMethod {
   downloadMirror,
 }
 
-class DB<T> {
+class CRUD<T> {
   late String _fileName;
+  late File _file;
 
-  DB(String fileName) {
+  CRUD(String fileName) {
     _fileName = fileName;
   }
 
-  Future<File> _getFile() async {
+  Future<CRUD> init() async {
     final directory = await getApplicationDocumentsDirectory();
-    return File('${directory.path}/$_fileName');
+    _file = File('${directory.path}/$_fileName');
+
+    return this;
   }
 
   Future<List<T>> readAll() async {
     try {
-      final file = await _getFile();
-      if (!file.existsSync()) return [];
-      final jsonData = await file.readAsString();
+      if (!_file.existsSync()) return [];
+      final jsonData = await _file.readAsString();
       final List<dynamic> jsonList = json.decode(jsonData);
       return jsonList.map((item) => _fromJson(item)).toList().cast<T>();
     } catch (e) {
@@ -101,12 +91,10 @@ class DB<T> {
 
   Future<void> create(T data) async {
     try {
-      final file = await _getFile();
       List<T> dataList = await readAll();
       dataList.add(data);
-      final jsonData =
-          json.encode(dataList.map((item) => _toJson(item)).toList());
-      await file.writeAsString(jsonData);
+      final jsonData = json.encode(dataList.map((item) => item).toList());
+      await _file.writeAsString(jsonData);
     } catch (e) {
       if (kDebugMode) {
         print("Error creating data: $e");
@@ -116,14 +104,12 @@ class DB<T> {
 
   Future<void> update(T oldData, T newData) async {
     try {
-      final file = await _getFile();
       List<T> dataList = await readAll();
       final index = dataList.indexOf(oldData);
       if (index != -1) {
         dataList[index] = newData;
-        final jsonData =
-            json.encode(dataList.map((item) => _toJson(item)).toList());
-        await file.writeAsString(jsonData);
+        final jsonData = json.encode(dataList.map((item) => item).toList());
+        await _file.writeAsString(jsonData);
       }
     } catch (e) {
       if (kDebugMode) {
@@ -134,21 +120,15 @@ class DB<T> {
 
   Future<void> delete(T data) async {
     try {
-      final file = await _getFile();
       List<T> dataList = await readAll();
       dataList.remove(data);
-      final jsonData =
-          json.encode(dataList.map((item) => _toJson(item)).toList());
-      await file.writeAsString(jsonData);
+      final jsonData = json.encode(dataList.map((item) => item).toList());
+      await _file.writeAsString(jsonData);
     } catch (e) {
       if (kDebugMode) {
         print("Error deleting data: $e");
       }
     }
-  }
-
-  dynamic _toJson(T data) {
-    return data;
   }
 
   T _fromJson(dynamic json) {
