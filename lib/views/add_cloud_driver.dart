@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:xync_backup/models/models.dart';
+import 'package:xync_backup/services/sync_service.dart';
 
 class AddCloudDriverPage extends StatefulWidget {
   const AddCloudDriverPage({super.key});
@@ -9,9 +12,11 @@ class AddCloudDriverPage extends StatefulWidget {
 
 class _AddCloudDriverPageState extends State<AddCloudDriverPage> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _typeController;
-  late TextEditingController _addressController;
-  late TextEditingController _userIdController;
+  late SyncService syncService;
+  late TextEditingController _typeController,
+      _addressController,
+      _userIdController,
+      _tokenController;
 
   @override
   void initState() {
@@ -19,6 +24,8 @@ class _AddCloudDriverPageState extends State<AddCloudDriverPage> {
     _typeController = TextEditingController();
     _addressController = TextEditingController();
     _userIdController = TextEditingController();
+    _tokenController = TextEditingController();
+    syncService = Provider.of<SyncService>(context, listen: true);
   }
 
   @override
@@ -26,72 +33,67 @@ class _AddCloudDriverPageState extends State<AddCloudDriverPage> {
     _typeController.dispose();
     _addressController.dispose();
     _userIdController.dispose();
+    _tokenController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Cloud Driver'),
-        actions: [
+        appBar: AppBar(title: const Text('Add Cloud Driver'), actions: [
           IconButton(
             icon: const Icon(Icons.help),
             onPressed: _showHelpDialog,
-          ),
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _saveCloudDriver,
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _typeController,
-                decoration: const InputDecoration(labelText: 'Type'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a type';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _addressController,
-                decoration: const InputDecoration(labelText: 'Address'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an address';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _userIdController,
-                decoration: const InputDecoration(labelText: 'User ID'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a user ID';
-                  }
-                  return null;
-                },
-              ),
-            ],
+          )
+        ]),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              children: [
+                TextFormField(
+                    controller: _typeController,
+                    decoration: const InputDecoration(labelText: 'Type'),
+                    validator: (value) => (value == null || value.isEmpty)
+                        ? 'Please enter a type'
+                        : null),
+                TextFormField(
+                    controller: _addressController,
+                    decoration: const InputDecoration(labelText: 'Address'),
+                    validator: (value) => (value == null || value.isEmpty)
+                        ? 'Please enter an address'
+                        : null),
+                TextFormField(
+                    controller: _userIdController,
+                    decoration: const InputDecoration(labelText: 'User ID'),
+                    validator: (value) => (value == null || value.isEmpty)
+                        ? 'Please enter a user id'
+                        : null),
+                TextFormField(
+                    controller: _tokenController,
+                    decoration: const InputDecoration(labelText: 'Token'),
+                    validator: (value) => (value == null || value.isEmpty)
+                        ? 'Please enter a token'
+                        : null),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+        floatingActionButton: FloatingActionButton(
+          onPressed: _saveCloudDriver,
+          child: const Icon(Icons.save),
+        ));
   }
 
   void _saveCloudDriver() {
     if (_formKey.currentState!.validate()) {
-      // Save cloud driver configuration using controller
-      // For example: cloudDriverController.addCloudDriver(CloudDriver(...));
+      syncService.drivers.create(CloudDriver(
+        type: _typeController.text,
+        address: _addressController.text,
+        userId: _userIdController.text,
+        token: _tokenController.text,
+      ));
       Navigator.pop(context);
     }
   }

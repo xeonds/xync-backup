@@ -12,6 +12,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SharedPreferencesService().init();
   await SyncService().init();
+  debugPrint(SyncService().syncFolders.toString());
   runApp(const MyApp());
 }
 
@@ -90,7 +91,7 @@ class _HomePageState extends State<HomePage> {
               label: 'Settings')
         ],
         selectedIndex: _selectedIndex,
-        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         onDestinationSelected: _onItemTapped,
       ),
       floatingActionButton: syncService.isSyncing

@@ -15,6 +15,11 @@ class SyncService extends ChangeNotifier {
   bool get isSyncing => _isSyncing;
   bool get isPaused => _isPaused;
 
+  static final SyncService _instance = SyncService._internal();
+  factory SyncService() => _instance;
+
+  SyncService._internal();
+
   Future<void> init() async {
     rules = await CRUD('sync_rules.json').init();
     logs = await CRUD('sync_logs.json').init();
